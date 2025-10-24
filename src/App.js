@@ -6,7 +6,9 @@ function App() {
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!window.localStorage.getItem("isAdmin")
+  );
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [formData, setFormData] = useState({
     pair: "",
@@ -87,9 +89,29 @@ function App() {
       .catch(() => alert("❌ Invalid admin credentials."));
   };
 
-  // ✅ Check if not admin (localStorage)
-  if (!window.localStorage.getItem("isAdmin")) {
-    return <AdminLogin onLogin={() => window.localStorage.setItem("isAdmin", "true")} />;
+  const handleLogout = () => {
+    window.localStorage.removeItem("isAdmin");
+    setIsLoggedIn(false);
+    setIsAdminMode(false);
+    alert("👋 Logged out successfully!");
+    window.location.reload();
+  };
+
+  // ✅ If not admin, show login screen
+  if (!isLoggedIn && isAdminMode) {
+    return (
+      <div
+        style={{
+          padding: "30px",
+          fontFamily: "Segoe UI, Arial",
+          backgroundColor: "#f6fff6",
+          color: "#033d0b",
+          minHeight: "100vh",
+        }}
+      >
+        <AdminLogin onLogin={() => setIsLoggedIn(true)} />
+      </div>
+    );
   }
 
   return (
@@ -112,173 +134,138 @@ function App() {
           marginBottom: "30px",
         }}
       >
-        <h1 style={{ margin: 0 }}>💹 SABI TECH Forex Signals</h1>
-        <p style={{ margin: "5px 0 10px 0", opacity: 0.9 }}>
-          Real-time Forex, Commodities & Indices trading insights.
-        </p>
-        <button
-          onClick={() => setIsAdminMode(!isAdminMode)}
+        <div
           style={{
-            background: "white",
-            color: "#006b3c",
-            border: "none",
-            padding: "6px 12px",
-            borderRadius: "6px",
-            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          {isAdminMode ? "Switch to User Mode" : "Admin Mode"}
-        </button>
+          <div>
+            <h1 style={{ margin: 0 }}>💹 SABI TECH Forex Signals</h1>
+            <p style={{ margin: "5px 0 10px 0", opacity: 0.9 }}>
+              Real-time Forex, Commodities & Indices trading insights.
+            </p>
+          </div>
+
+          <div>
+            <button
+              onClick={() => setIsAdminMode(!isAdminMode)}
+              style={{
+                background: "white",
+                color: "#006b3c",
+                border: "none",
+                padding: "6px 12px",
+                borderRadius: "6px",
+                cursor: "pointer",
+                marginRight: "10px",
+              }}
+            >
+              {isAdminMode ? "User Mode" : "Admin Mode"}
+            </button>
+
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: "red",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                Logout
+              </button>
+            )}
+          </div>
+        </div>
       </header>
 
-      {isAdminMode ? (
-        isLoggedIn ? (
-          // ✅ Admin Logged In View
-          <div
+      {isAdminMode && isLoggedIn && (
+        <div
+          style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: "10px",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+            marginBottom: "25px",
+          }}
+        >
+          <h2 style={{ color: "#006b3c" }}>➕ Add New Signal (Admin)</h2>
+          <form
+            onSubmit={handleSubmit}
             style={{
-              background: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-              marginBottom: "25px",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: "10px",
+              marginTop: "15px",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-  <h2 style={{ color: "#006b3c" }}>➕ Add New Signal (Admin)</h2>
-
-  {isLoggedIn && (
-    <button
-      onClick={() => {
-        window.localStorage.removeItem("isAdmin");
-        setIsLoggedIn(false);
-        setIsAdminMode(false);
-      }}
-      style={{
-        background: "red",
-        color: "white",
-        border: "none",
-        padding: "8px 14px",
-        borderRadius: "6px",
-        cursor: "pointer",
-      }}
-    >
-      Logout
-    </button>
-  )}
-</div>
-
-<form
-  onSubmit={handleSubmit}
-  style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "10px",
-    marginTop: "15px",
-  }}
->
-
+            <input
+              name="pair"
+              placeholder="Pair (e.g. EUR/USD)"
+              value={formData.pair}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <select
+              name="direction"
+              value={formData.direction}
+              onChange={handleChange}
+              required
+              style={inputStyle}
             >
-              <input
-                name="pair"
-                placeholder="Pair (e.g. EUR/USD)"
-                value={formData.pair}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <select
-                name="direction"
-                value={formData.direction}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              >
-                <option value="">Direction</option>
-                <option value="LONG">LONG</option>
-                <option value="SHORT">SHORT</option>
-              </select>
-              <input
-                type="number"
-                step="0.0001"
-                name="entry_price"
-                placeholder="Entry"
-                value={formData.entry_price}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="number"
-                step="0.0001"
-                name="take_profit"
-                placeholder="Take Profit"
-                value={formData.take_profit}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="number"
-                step="0.0001"
-                name="stop_loss"
-                placeholder="Stop Loss"
-                value={formData.stop_loss}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="datetime-local"
-                name="timestamp"
-                value={formData.timestamp}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <button type="submit" style={btnPrimary}>
-                Add Signal
-              </button>
-            </form>
-          </div>
-        ) : (
-          // 🔒 Admin Login Form
-          <div
-            style={{
-              background: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-              maxWidth: "400px",
-              margin: "0 auto",
-            }}
-          >
-            <h2 style={{ color: "#006b3c" }}>🔑 Admin Login</h2>
-            <form onSubmit={handleAdminLogin} style={{ display: "grid", gap: "10px", marginTop: "15px" }}>
-              <input
-                type="email"
-                name="email"
-                placeholder="Admin Email"
-                value={loginData.email}
-                onChange={handleLoginChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={loginData.password}
-                onChange={handleLoginChange}
-                required
-                style={inputStyle}
-              />
-              <button type="submit" style={btnPrimary}>
-                Login
-              </button>
-            </form>
-          </div>
-        )
-      ) : null}
+              <option value="">Direction</option>
+              <option value="LONG">LONG</option>
+              <option value="SHORT">SHORT</option>
+            </select>
+            <input
+              type="number"
+              step="0.0001"
+              name="entry_price"
+              placeholder="Entry"
+              value={formData.entry_price}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <input
+              type="number"
+              step="0.0001"
+              name="take_profit"
+              placeholder="Take Profit"
+              value={formData.take_profit}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <input
+              type="number"
+              step="0.0001"
+              name="stop_loss"
+              placeholder="Stop Loss"
+              value={formData.stop_loss}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <input
+              type="datetime-local"
+              name="timestamp"
+              value={formData.timestamp}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <button type="submit" style={btnPrimary}>
+              Add Signal
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* 📊 Signals Table */}
       <div
