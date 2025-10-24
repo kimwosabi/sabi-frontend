@@ -143,15 +143,40 @@ function App() {
               marginBottom: "25px",
             }}
           >
-            <h2 style={{ color: "#006b3c" }}>➕ Add New Signal (Admin)</h2>
-            <form
-              onSubmit={handleSubmit}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "10px",
-                marginTop: "15px",
-              }}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+  <h2 style={{ color: "#006b3c" }}>➕ Add New Signal (Admin)</h2>
+
+  {isLoggedIn && (
+    <button
+      onClick={() => {
+        window.localStorage.removeItem("isAdmin");
+        setIsLoggedIn(false);
+        setIsAdminMode(false);
+      }}
+      style={{
+        background: "red",
+        color: "white",
+        border: "none",
+        padding: "8px 14px",
+        borderRadius: "6px",
+        cursor: "pointer",
+      }}
+    >
+      Logout
+    </button>
+  )}
+</div>
+
+<form
+  onSubmit={handleSubmit}
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "10px",
+    marginTop: "15px",
+  }}
+>
+
             >
               <input
                 name="pair"
