@@ -1,3 +1,4 @@
+import AdminLogin from "./AdminLogin";
 import React, { useEffect, useState } from "react";
 import API_BASE_URL from "./config";
 
@@ -80,10 +81,16 @@ function App() {
       })
       .then(() => {
         alert("✅ Admin login successful!");
+        window.localStorage.setItem("isAdmin", "true");
         setIsLoggedIn(true);
       })
       .catch(() => alert("❌ Invalid admin credentials."));
   };
+
+  // ✅ Check if not admin (localStorage)
+  if (!window.localStorage.getItem("isAdmin")) {
+    return <AdminLogin onLogin={() => window.localStorage.setItem("isAdmin", "true")} />;
+  }
 
   return (
     <div
