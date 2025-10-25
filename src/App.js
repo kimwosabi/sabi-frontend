@@ -124,64 +124,64 @@ function App() {
         minHeight: "100vh",
       }}
     >
-      <header
+     <header
+  style={{
+    backgroundColor: "#006b3c",
+    color: "white",
+    padding: "15px 30px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+    marginBottom: "30px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  }}
+>
+  <div>
+    <h1 style={{ margin: 0 }}>💹 SABI TECH Forex Signals</h1>
+    <p style={{ margin: "5px 0 10px 0", opacity: 0.9 }}>
+      Real-time Forex, Commodities & Indices trading insights.
+    </p>
+  </div>
+
+  <div>
+    <button
+      onClick={() => setIsAdminMode(!isAdminMode)}
+      style={{
+        background: "white",
+        color: "#006b3c",
+        border: "none",
+        padding: "6px 12px",
+        borderRadius: "6px",
+        cursor: "pointer",
+        marginRight: "10px",
+      }}
+    >
+      {isAdminMode ? "Switch to User Mode" : "Admin Mode"}
+    </button>
+
+    {window.localStorage.getItem("isAdmin") && (
+      <button
+        onClick={() => {
+          window.localStorage.removeItem("isAdmin");
+          setIsLoggedIn(false);
+          setIsAdminMode(false);
+          alert("Logged out successfully!");
+        }}
         style={{
-          backgroundColor: "#006b3c",
+          background: "red",
           color: "white",
-          padding: "15px 30px",
-          borderRadius: "10px",
-          boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-          marginBottom: "30px",
+          border: "none",
+          padding: "6px 12px",
+          borderRadius: "6px",
+          cursor: "pointer",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <h1 style={{ margin: 0 }}>💹 SABI TECH Forex Signals</h1>
-            <p style={{ margin: "5px 0 10px 0", opacity: 0.9 }}>
-              Real-time Forex, Commodities & Indices trading insights.
-            </p>
-          </div>
-
-          <div>
-            <button
-              onClick={() => setIsAdminMode(!isAdminMode)}
-              style={{
-                background: "white",
-                color: "#006b3c",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                marginRight: "10px",
-              }}
-            >
-              {isAdminMode ? "User Mode" : "Admin Mode"}
-            </button>
-
-            {isLoggedIn && (
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: "red",
-                  color: "white",
-                  border: "none",
-                  padding: "8px 14px",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
-              >
-                Logout
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+        Logout
+      </button>
+    )}
+  </div>
+</header>
 
       {isAdminMode && isLoggedIn && (
         <div
