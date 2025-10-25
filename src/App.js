@@ -124,6 +124,34 @@ function App() {
         minHeight: "100vh",
       }}
     >
+{window.localStorage.getItem("isAdmin") && (
+  <button
+    onClick={() => {
+      window.localStorage.removeItem("isAdmin");
+      setIsLoggedIn(false);
+      setIsAdminMode(false);
+      alert("Logged out successfully!");
+      window.location.reload();
+    }}
+    style={{
+      position: "fixed",
+      top: "20px",
+      right: "20px",
+      background: "red",
+      color: "white",
+      border: "none",
+      padding: "10px 16px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+      zIndex: 1000,
+    }}
+  >
+    Logout
+  </button>
+)}
+
      <header
   style={{
     backgroundColor: "#006b3c",
