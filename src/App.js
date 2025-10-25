@@ -1,6 +1,7 @@
 import AdminLogin from "./AdminLogin";
 import React, { useEffect, useState } from "react";
 import API_BASE_URL from "./config";
+import { motion, AnimatePresence } from "framer-motion"; // ✅ animation library
 
 function App() {
   const [signals, setSignals] = useState([]);
@@ -89,7 +90,7 @@ function App() {
       .catch(() => alert("❌ Invalid admin credentials."));
   };
 
-  // ✅ Show login screen if not logged in
+  // ✅ If not admin, show login page
   if (!isLoggedIn) {
     return (
       <AdminLogin
@@ -112,36 +113,42 @@ function App() {
         position: "relative",
       }}
     >
-      {/* ✅ Logout button visible ONLY in Admin Mode */}
-      {isAdminMode && (
-        <button
-          onClick={() => {
-            if (window.confirm("Are you sure you want to log out?")) {
-              window.localStorage.removeItem("isAdmin");
-              setIsLoggedIn(false);
-              setIsAdminMode(false);
-              alert("Logged out successfully!");
-              window.location.reload();
-            }
-          }}
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            background: "red",
-            color: "white",
-            border: "none",
-            padding: "10px 16px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-            zIndex: 1000,
-          }}
-        >
-          Logout
-        </button>
-      )}
+      {/* ✅ Smooth Logout Animation */}
+      <AnimatePresence>
+        {isAdminMode && (
+          <motion.button
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            onClick={() => {
+              if (window.confirm("Are you sure you want to log out?")) {
+                window.localStorage.removeItem("isAdmin");
+                setIsLoggedIn(false);
+                setIsAdminMode(false);
+                alert("Logged out successfully!");
+                window.location.reload();
+              }
+            }}
+            style={{
+              position: "fixed",
+              top: "20px",
+              right: "20px",
+              background: "red",
+              color: "white",
+              border: "none",
+              padding: "10px 16px",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+              boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+              zIndex: 1000,
+            }}
+          >
+            Logout
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       <header
         style={{
@@ -172,7 +179,7 @@ function App() {
         </button>
       </header>
 
-      {/* ✅ Admin Mode View */}
+      {/* ✅ Admin Mode */}
       {isAdminMode && (
         <div
           style={{
@@ -334,6 +341,7 @@ function App() {
   );
 }
 
+// --- Styles ---
 const inputStyle = {
   padding: "10px",
   borderRadius: "6px",
