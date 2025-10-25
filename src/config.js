@@ -1,3 +1,2 @@
-
-const BASE_URL = "https://sabi-frontend.onrender.com";
+const API_BASE_URL = "https://kimwosabi-signals-1.onrender.com";
 export default API_BASE_URL;
