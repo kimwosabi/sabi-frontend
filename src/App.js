@@ -6,7 +6,9 @@ function App() {
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isAdminMode, setIsAdminMode] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!window.localStorage.getItem("isAdmin"));
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    !!window.localStorage.getItem("isAdmin")
+  );
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [formData, setFormData] = useState({
     pair: "",
@@ -87,9 +89,16 @@ function App() {
       .catch(() => alert("❌ Invalid admin credentials."));
   };
 
-  // ✅ If not admin, show login page
-  if (!window.localStorage.getItem("isAdmin")) {
-    return <AdminLogin onLogin={() => window.localStorage.setItem("isAdmin", "true")} />;
+  // ✅ Show login page if admin not logged in
+  if (!isLoggedIn) {
+    return (
+      <AdminLogin
+        onLogin={() => {
+          window.localStorage.setItem("isAdmin", "true");
+          setIsLoggedIn(true);
+        }}
+      />
+    );
   }
 
   return (
@@ -104,35 +113,33 @@ function App() {
       }}
     >
       {/* ✅ Floating Logout Button */}
-      {isLoggedIn && (
-        <button
-          onClick={() => {
-            if (window.confirm("Are you sure you want to log out?")) {
-              window.localStorage.removeItem("isAdmin");
-              setIsLoggedIn(false);
-              setIsAdminMode(false);
-              alert("Logged out successfully!");
-              window.location.reload();
-            }
-          }}
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            background: "red",
-            color: "white",
-            border: "none",
-            padding: "10px 16px",
-            borderRadius: "8px",
-            cursor: "pointer",
-            fontWeight: "bold",
-            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-            zIndex: 1000,
-          }}
-        >
-          Logout
-        </button>
-      )}
+      <button
+        onClick={() => {
+          if (window.confirm("Are you sure you want to log out?")) {
+            window.localStorage.removeItem("isAdmin");
+            setIsLoggedIn(false);
+            setIsAdminMode(false);
+            alert("Logged out successfully!");
+            window.location.reload();
+          }
+        }}
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          background: "red",
+          color: "white",
+          border: "none",
+          padding: "10px 16px",
+          borderRadius: "8px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+          zIndex: 1000,
+        }}
+      >
+        Logout
+      </button>
 
       <header
         style={{
@@ -164,127 +171,89 @@ function App() {
       </header>
 
       {/* ✅ Admin Mode */}
-      {isAdminMode ? (
-        isLoggedIn ? (
-          <div
+      {isAdminMode && (
+        <div
+          style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: "10px",
+            boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+            marginBottom: "25px",
+          }}
+        >
+          <h2 style={{ color: "#006b3c" }}>➕ Add New Signal (Admin)</h2>
+          <form
+            onSubmit={handleSubmit}
             style={{
-              background: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-              marginBottom: "25px",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: "10px",
+              marginTop: "15px",
             }}
           >
-            <h2 style={{ color: "#006b3c" }}>➕ Add New Signal (Admin)</h2>
-            <form
-              onSubmit={handleSubmit}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "10px",
-                marginTop: "15px",
-              }}
+            <input
+              name="pair"
+              placeholder="Pair (e.g. EUR/USD)"
+              value={formData.pair}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <select
+              name="direction"
+              value={formData.direction}
+              onChange={handleChange}
+              required
+              style={inputStyle}
             >
-              <input
-                name="pair"
-                placeholder="Pair (e.g. EUR/USD)"
-                value={formData.pair}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <select
-                name="direction"
-                value={formData.direction}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              >
-                <option value="">Direction</option>
-                <option value="LONG">LONG</option>
-                <option value="SHORT">SHORT</option>
-              </select>
-              <input
-                type="number"
-                step="0.0001"
-                name="entry_price"
-                placeholder="Entry"
-                value={formData.entry_price}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="number"
-                step="0.0001"
-                name="take_profit"
-                placeholder="Take Profit"
-                value={formData.take_profit}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="number"
-                step="0.0001"
-                name="stop_loss"
-                placeholder="Stop Loss"
-                value={formData.stop_loss}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="datetime-local"
-                name="timestamp"
-                value={formData.timestamp}
-                onChange={handleChange}
-                required
-                style={inputStyle}
-              />
-              <button type="submit" style={btnPrimary}>
-                Add Signal
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div
-            style={{
-              background: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
-              maxWidth: "400px",
-              margin: "0 auto",
-            }}
-          >
-            <h2 style={{ color: "#006b3c" }}>🔑 Admin Login</h2>
-            <form onSubmit={handleAdminLogin} style={{ display: "grid", gap: "10px", marginTop: "15px" }}>
-              <input
-                type="email"
-                name="email"
-                placeholder="Admin Email"
-                value={loginData.email}
-                onChange={handleLoginChange}
-                required
-                style={inputStyle}
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={loginData.password}
-                onChange={handleLoginChange}
-                required
-                style={inputStyle}
-              />
-              <button type="submit" style={btnPrimary}>
-                Login
-              </button>
-            </form>
-          </div>
-        )
-      ) : null}
+              <option value="">Direction</option>
+              <option value="LONG">LONG</option>
+              <option value="SHORT">SHORT</option>
+            </select>
+            <input
+              type="number"
+              step="0.0001"
+              name="entry_price"
+              placeholder="Entry"
+              value={formData.entry_price}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <input
+              type="number"
+              step="0.0001"
+              name="take_profit"
+              placeholder="Take Profit"
+              value={formData.take_profit}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <input
+              type="number"
+              step="0.0001"
+              name="stop_loss"
+              placeholder="Stop Loss"
+              value={formData.stop_loss}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <input
+              type="datetime-local"
+              name="timestamp"
+              value={formData.timestamp}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+            />
+            <button type="submit" style={btnPrimary}>
+              Add Signal
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* 📊 Signals Table */}
       <div
@@ -295,7 +264,13 @@ function App() {
           boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <h2 style={{ color: "#006b3c" }}>📊 Active Signals</h2>
           <button onClick={loadSignals} style={btnSecondary}>
             🔄 Refresh
@@ -350,7 +325,8 @@ function App() {
           opacity: 0.8,
         }}
       >
-        © {new Date().getFullYear()} SABI TECH Finance — Powered by Kimwosabi Signals
+        © {new Date().getFullYear()} SABI TECH Finance — Powered by Kimwosabi
+        Signals
       </footer>
     </div>
   );
