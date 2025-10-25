@@ -89,7 +89,7 @@ function App() {
       .catch(() => alert("❌ Invalid admin credentials."));
   };
 
-  // ✅ Show login page if admin not logged in
+  // ✅ Show login screen if not logged in
   if (!isLoggedIn) {
     return (
       <AdminLogin
@@ -112,34 +112,36 @@ function App() {
         position: "relative",
       }}
     >
-      {/* ✅ Floating Logout Button */}
-      <button
-        onClick={() => {
-          if (window.confirm("Are you sure you want to log out?")) {
-            window.localStorage.removeItem("isAdmin");
-            setIsLoggedIn(false);
-            setIsAdminMode(false);
-            alert("Logged out successfully!");
-            window.location.reload();
-          }
-        }}
-        style={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          background: "red",
-          color: "white",
-          border: "none",
-          padding: "10px 16px",
-          borderRadius: "8px",
-          cursor: "pointer",
-          fontWeight: "bold",
-          boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
-          zIndex: 1000,
-        }}
-      >
-        Logout
-      </button>
+      {/* ✅ Logout button visible ONLY in Admin Mode */}
+      {isAdminMode && (
+        <button
+          onClick={() => {
+            if (window.confirm("Are you sure you want to log out?")) {
+              window.localStorage.removeItem("isAdmin");
+              setIsLoggedIn(false);
+              setIsAdminMode(false);
+              alert("Logged out successfully!");
+              window.location.reload();
+            }
+          }}
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "red",
+            color: "white",
+            border: "none",
+            padding: "10px 16px",
+            borderRadius: "8px",
+            cursor: "pointer",
+            fontWeight: "bold",
+            boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+            zIndex: 1000,
+          }}
+        >
+          Logout
+        </button>
+      )}
 
       <header
         style={{
@@ -170,7 +172,7 @@ function App() {
         </button>
       </header>
 
-      {/* ✅ Admin Mode */}
+      {/* ✅ Admin Mode View */}
       {isAdminMode && (
         <div
           style={{
