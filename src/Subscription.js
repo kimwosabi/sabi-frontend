@@ -1,94 +1,101 @@
-// src/Subscription.js
 import React, { useState } from "react";
 import API_BASE_URL from "./config";
 
-export default function Subscription({ onSuccess }) {
+function Subscription({ onSuccess }) {
   const [phone, setPhone] = useState("");
-  const [tier, setTier] = useState("daily");
+  const [amount, setAmount] = useState(300);
   const [loading, setLoading] = useState(false);
-  const [checkoutId, setCheckoutId] = useState(null);
-  const [message, setMessage] = useState("");
 
-  const startPayment = async () => {
-    if (!phone) return alert("Enter phone (2547...)");
+  const handlePay = async () => {
+    if (!phone.startsWith("254")) {
+      alert("Please enter your number in 2547XXXXXXXX format");
+      return;
+    }
+
     setLoading(true);
-    setMessage("Requesting STK Push... you will get a prompt on your phone.");
     try {
-      const res = await fetch(`${API_BASE_URL}/mpesa/stk_push`, {
+      const res = await fetch(`${API_BASE_URL}/mpesa/stkpush`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, tier })
+        body: JSON.stringify({ phone_number: phone, amount }),
       });
+
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || JSON.stringify(data));
+      if (data.ResponseCode === "0") {
+        alert("✅ STK Push sent! Enter your M-PESA PIN to complete payment.");
+        onSuccess();
+      } else {
+        alert("❌ Payment failed. Please try again.");
+        console.log("M-PESA Response:", data);
       }
-      setCheckoutId(data.checkout_request_id);
-      setMessage("STK Push sent. Waiting for confirmation...");
-      // poll status
-      pollStatus(data.checkout_request_id);
     } catch (err) {
-      setMessage("Error starting payment: " + err.message);
+      alert("Error connecting to payment gateway");
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
 
-  const pollStatus = async (checkout) => {
-    let attempts = 0;
-    const maxAttempts = 20;
-    const interval = 3000; // 3s
-    const timer = setInterval(async () => {
-      attempts++;
-      try {
-        const res = await fetch(`${API_BASE_URL}/mpesa/status?checkout_request_id=${encodeURIComponent(checkout)}`);
-        const data = await res.json();
-        if (data.status === "SUCCESS") {
-          clearInterval(timer);
-          setMessage("Payment successful! Subscription activated.");
-          setLoading(false);
-          if (onSuccess) onSuccess();
-        } else if (data.status === "FAILED") {
-          clearInterval(timer);
-          setMessage("Payment failed: " + (data.mpesa_receipt || ""));
-          setLoading(false);
-        } else {
-          setMessage("Waiting for payment confirmation...");
-        }
-        if (attempts >= maxAttempts) {
-          clearInterval(timer);
-          setMessage("Still pending. Check your phone or try again later.");
-          setLoading(false);
-        }
-      } catch (e) {
-        clearInterval(timer);
-        setMessage("Error polling status: " + e.message);
-        setLoading(false);
-      }
-    }, interval);
-  };
-
   return (
-    <div style={{ background: "white", padding: 20, borderRadius: 8, boxShadow: "0 4px 10px rgba(0,0,0,0.05)" }}>
-      <h3>Subscribe to SABI Signals</h3>
-      <div style={{ marginBottom: 10 }}>
-        <label>Phone (format 2547...):</label>
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="2547..." style={{ width: "100%", padding: 8, marginTop: 6 }} />
-      </div>
-      <div style={{ marginBottom: 10 }}>
-        <label>Tier:</label>
-        <select value={tier} onChange={(e) => setTier(e.target.value)} style={{ width: "100%", padding: 8, marginTop: 6 }}>
-          <option value="daily">Daily — KES 10</option>
-          <option value="weekly">Weekly — KES 50</option>
-          <option value="monthly">Monthly — KES 150</option>
-        </select>
-      </div>
-      <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={startPayment} disabled={loading} style={{ background: "#006b3c", color: "white", padding: "8px 12px", borderRadius: 6 }}>
-          Pay with M-PESA
-        </button>
-      </div>
-      {checkoutId && <p>Checkout ID: {checkoutId}</p>}
-      {message && <p style={{ marginTop: 10 }}>{message}</p>}
+    <div
+      style={{
+        marginTop: "40px",
+        background: "white",
+        padding: "20px",
+        borderRadius: "10px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        textAlign: "center",
+      }}
+    >
+      <h2 style={{ color: "#006b3c" }}>💳 Subscribe via M-PESA</h2>
+      <p>Get full access to all premium forex signals.</p>
+
+      <input
+        type="text"
+        placeholder="Phone Number (2547XXXXXXXX)"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        style={{
+          padding: "10px",
+          width: "250px",
+          borderRadius: "6px",
+          border: "1px solid #ccc",
+          marginBottom: "10px",
+        }}
+      />
+      <br />
+      <select
+        value={amount}
+        onChange={(e) => setAmount(Number(e.target.value))}
+        style={{
+          padding: "10px",
+          borderRadius: "6px",
+          border: "1px solid #ccc",
+          marginBottom: "15px",
+        }}
+      >
+        <option value={300}>Daily - KSh 300</option>
+        <option value={1500}>Weekly - KSh 1500</option>
+        <option value={4000}>Monthly - KSh 4000</option>
+      </select>
+      <br />
+      <button
+        onClick={handlePay}
+        disabled={loading}
+        style={{
+          background: "#006b3c",
+          color: "white",
+          border: "none",
+          padding: "10px 20px",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        {loading ? "Processing..." : "Pay Now"}
+      </button>
     </div>
   );
 }
+
+export default Subscription;
