@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { PieChart, Pie, Cell, Tooltip, Legend, LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import AdminLogin from "./AdminLogin";
 import API_BASE_URL from "./config";
 
@@ -19,7 +20,6 @@ function App() {
     timestamp: "",
   });
 
-  // ✅ Load signals
   const loadSignals = async () => {
     try {
       setLoading(true);
@@ -37,11 +37,9 @@ function App() {
     loadSignals();
   }, []);
 
-  // ✅ Handle input changes
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleLoginChange = (e) => setLoginData({ ...loginData, [e.target.name]: e.target.value });
 
-  // ✅ Submit a new signal
   const handleSubmit = async (e) => {
     e.preventDefault();
     const signalData = {
@@ -73,7 +71,6 @@ function App() {
     }
   };
 
-  // ✅ Admin login
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     try {
@@ -92,7 +89,6 @@ function App() {
     }
   };
 
-  // ✅ Logout button
   const handleLogout = () => {
     window.localStorage.removeItem("isAdmin");
     setIsLoggedIn(false);
@@ -101,6 +97,23 @@ function App() {
   };
 
   const showLogout = isLoggedIn && isAdminMode;
+
+  // 📊 Prepare chart data
+  const longCount = signals.filter((s) => s.direction === "LONG").length;
+  const shortCount = signals.filter((s) => s.direction === "SHORT").length;
+  const chartData = [
+    { name: "LONG", value: longCount },
+    { name: "SHORT", value: shortCount },
+  ];
+
+  const lineChartData = signals.map((s) => ({
+    name: s.pair,
+    entry: s.entry_price,
+    tp: s.take_profit,
+    sl: s.stop_loss,
+  }));
+
+  const COLORS = ["#00a65a", "#e74c3c"];
 
   return (
     <div
@@ -114,7 +127,6 @@ function App() {
     >
       <ToastContainer position="top-right" autoClose={3000} theme="light" />
 
-      {/* 🔴 Floating Logout Button */}
       {showLogout && (
         <button
           onClick={handleLogout}
@@ -137,7 +149,6 @@ function App() {
         </button>
       )}
 
-      {/* ✅ Header */}
       <header
         style={{
           backgroundColor: "#006b3c",
@@ -171,40 +182,65 @@ function App() {
       {/* ✅ Admin Mode */}
       {isAdminMode ? (
         isLoggedIn ? (
-          <div
-            style={{
-              background: "white",
-              padding: "25px",
-              borderRadius: "12px",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-              marginBottom: "25px",
-            }}
-          >
-            <h2 style={{ color: "#006b3c", marginBottom: "10px" }}>
-              ➕ Add New Signal
-            </h2>
-            <form
-              onSubmit={handleSubmit}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "12px",
-                marginTop: "15px",
-              }}
-            >
-              <input name="pair" placeholder="Pair (e.g. EUR/USD)" value={formData.pair} onChange={handleChange} required style={inputStyle} />
-              <select name="direction" value={formData.direction} onChange={handleChange} required style={inputStyle}>
-                <option value="">Direction</option>
-                <option value="LONG">LONG</option>
-                <option value="SHORT">SHORT</option>
-              </select>
-              <input type="number" step="0.0001" name="entry_price" placeholder="Entry" value={formData.entry_price} onChange={handleChange} required style={inputStyle} />
-              <input type="number" step="0.0001" name="take_profit" placeholder="Take Profit" value={formData.take_profit} onChange={handleChange} required style={inputStyle} />
-              <input type="number" step="0.0001" name="stop_loss" placeholder="Stop Loss" value={formData.stop_loss} onChange={handleChange} required style={inputStyle} />
-              <input type="datetime-local" name="timestamp" value={formData.timestamp} onChange={handleChange} required style={inputStyle} />
-              <button type="submit" style={btnPrimary}>Add Signal</button>
-            </form>
-          </div>
+          <>
+            <div style={cardStyle}>
+              <h2 style={{ color: "#006b3c", marginBottom: "10px" }}>➕ Add New Signal</h2>
+              <form
+                onSubmit={handleSubmit}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: "12px",
+                  marginTop: "15px",
+                }}
+              >
+                <input name="pair" placeholder="Pair (e.g. EUR/USD)" value={formData.pair} onChange={handleChange} required style={inputStyle} />
+                <select name="direction" value={formData.direction} onChange={handleChange} required style={inputStyle}>
+                  <option value="">Direction</option>
+                  <option value="LONG">LONG</option>
+                  <option value="SHORT">SHORT</option>
+                </select>
+                <input type="number" step="0.0001" name="entry_price" placeholder="Entry" value={formData.entry_price} onChange={handleChange} required style={inputStyle} />
+                <input type="number" step="0.0001" name="take_profit" placeholder="Take Profit" value={formData.take_profit} onChange={handleChange} required style={inputStyle} />
+                <input type="number" step="0.0001" name="stop_loss" placeholder="Stop Loss" value={formData.stop_loss} onChange={handleChange} required style={inputStyle} />
+                <input type="datetime-local" name="timestamp" value={formData.timestamp} onChange={handleChange} required style={inputStyle} />
+                <button type="submit" style={btnPrimary}>Add Signal</button>
+              </form>
+            </div>
+
+            {/* 📈 Charts */}
+            <div style={{ display: "grid", gap: "20px", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
+              <div style={cardStyle}>
+                <h3 style={{ color: "#006b3c" }}>📊 Signal Distribution</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie data={chartData} cx="50%" cy="50%" outerRadius={80} fill="#8884d8" dataKey="value" label>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div style={cardStyle}>
+                <h3 style={{ color: "#006b3c" }}>📈 Price Trends</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={lineChartData}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="entry" stroke="#00a65a" />
+                    <Line type="monotone" dataKey="tp" stroke="#006b3c" />
+                    <Line type="monotone" dataKey="sl" stroke="#e74c3c" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </>
         ) : (
           <div style={{ ...cardStyle, maxWidth: "400px", margin: "0 auto" }}>
             <h2 style={{ color: "#006b3c" }}>🔑 Admin Login</h2>
@@ -217,10 +253,10 @@ function App() {
         )
       ) : null}
 
-      {/* 📊 Signals Table */}
+      {/* 📋 Signals Table */}
       <div style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h2 style={{ color: "#006b3c" }}>📊 Active Signals</h2>
+          <h2 style={{ color: "#006b3c" }}>📋 Active Signals</h2>
           <button onClick={loadSignals} style={btnSecondary}>🔄 Refresh</button>
         </div>
 
